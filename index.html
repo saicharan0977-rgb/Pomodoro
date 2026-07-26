@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADHD Focus Cockpit</title>
+    <title>ADHD Focus Cockpit: RPG Edition</title>
     <style>
-        /* CSS Variables for seamless theme switching */
+        /* CSS Variables */
         :root {
-            /* NORMAL MODE (Blue Theme) */
             --bg-color-1: #e0f2fe;
             --bg-color-2: #7dd3fc;
             --card-bg: rgba(255, 255, 255, 0.65);
@@ -16,7 +15,7 @@
             --glow-color: rgba(2, 132, 199, 0.3);
             --input-bg: rgba(255, 255, 255, 0.5);
             
-            /* Character Colors - Normal */
+            /* Character Normal */
             --skin: #fcd34d;
             --hair: #475569;
             --glasses-frame: #1e293b;
@@ -26,10 +25,15 @@
             /* Book */
             --book-opacity: 0;
             --book-transform: translateY(15px) scale(0.8);
+            --page-color: rgba(255, 255, 255, 0.15);
+            
+            /* Evolutions (Hidden by Default) */
+            --headband-opacity: 0;
+            --hat-opacity: 0;
+            --aura-opacity: 0;
         }
 
         body.study-mode {
-            /* STUDY MODE (Purple Theme) */
             --bg-color-1: #2e1065;
             --bg-color-2: #6b21a8;
             --card-bg: rgba(0, 0, 0, 0.55);
@@ -38,23 +42,41 @@
             --glow-color: rgba(216, 180, 254, 0.6);
             --input-bg: rgba(0, 0, 0, 0.4);
             
-            /* Character Colors - Study */
             --glasses-frame: #d8b4fe;
             --glasses-lens: rgba(216, 180, 254, 0.4);
             --shirt: #9333ea;
-
-            /* Book */
+            
             --book-opacity: 1;
             --book-transform: translateY(0px) scale(1);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background-color 0.8s, color 0.8s, border-color 0.8s;
+        /* --- LEVEL UP THEMES --- */
+        
+        /* Level 2: Headband */
+        body.lvl-2, body.lvl-3, body.lvl-4, body.lvl-5 { --headband-opacity: 1; }
+        
+        /* Level 3: Golden Book */
+        body.study-mode.lvl-3, body.study-mode.lvl-4, body.study-mode.lvl-5 {
+            --accent-color: #fbbf24; /* Golden Book Lines */
+            --glow-color: rgba(251, 191, 36, 0.4); /* Golden Glow */
+            --page-color: rgba(251, 191, 36, 0.2);
         }
+
+        /* Level 4: Glowing Glasses */
+        body.lvl-4 .glasses-frame, body.lvl-5 .glasses-frame {
+            stroke: #38bdf8;
+            filter: drop-shadow(0 0 5px #38bdf8);
+        }
+        body.study-mode.lvl-4 .glasses-frame, body.study-mode.lvl-5 .glasses-frame {
+            stroke: #fbbf24;
+            filter: drop-shadow(0 0 8px #fbbf24);
+        }
+
+        /* Level 5: Wizard Hat & Aura */
+        body.lvl-5 { --hat-opacity: 1; }
+        body.study-mode.lvl-5 { --aura-opacity: 1; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; transition: background-color 0.8s, color 0.8s, border-color 0.8s; }
 
         body {
             background: linear-gradient(135deg, var(--bg-color-1), var(--bg-color-2));
@@ -62,106 +84,60 @@
             animation: gradientBG 15s ease infinite;
             color: var(--text-color);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            overflow: hidden;
-            padding: 1rem;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            overflow: hidden; padding: 1rem;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         .container {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 2.5rem;
-            border-radius: 2rem;
-            box-shadow: 0 8px 32px var(--glow-color);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            position: relative;
-            z-index: 10;
+            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 2.5rem; border-radius: 2rem; box-shadow: 0 8px 32px var(--glow-color);
+            text-align: center; max-width: 500px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative; z-index: 10;
         }
 
-        /* The "One Thing" Intention Setter */
-        .intention-wrapper {
-            margin-bottom: 1.5rem;
+        /* --- XP BAR UI --- */
+        .xp-wrapper {
+            background: rgba(0,0,0,0.2); border-radius: 50px; padding: 0.5rem 1rem;
+            margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.1); cursor: pointer; /* Secret click to add XP */
+            position: relative; overflow: hidden;
         }
-        .intention-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.8;
-            margin-bottom: 0.5rem;
-            display: block;
+        .xp-text { font-weight: bold; font-size: 0.9rem; z-index: 2; position: relative; letter-spacing: 1px;}
+        .xp-fill {
+            position: absolute; top: 0; left: 0; height: 100%; background: var(--accent-color);
+            opacity: 0.3; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1;
         }
+        .xp-popup {
+            position: absolute; color: #fbbf24; font-weight: bold; font-size: 1.5rem;
+            pointer-events: none; opacity: 0; transform: translateY(0); transition: all 1s ease-out;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 100;
+        }
+        .xp-popup.animate { opacity: 1; transform: translateY(-40px); }
+
         .intention-input {
-            width: 100%;
-            background: var(--input-bg);
-            border: 2px solid transparent;
-            color: var(--text-color);
-            font-size: 1.2rem;
-            padding: 0.8rem;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            outline: none;
-            transition: all 0.3s ease;
+            width: 100%; background: var(--input-bg); border: 2px solid transparent; color: var(--text-color);
+            font-size: 1.2rem; padding: 0.8rem; border-radius: 12px; text-align: center; font-weight: bold;
+            outline: none; transition: all 0.3s ease; margin-bottom: 1rem;
         }
-        .intention-input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 15px var(--glow-color);
-        }
-        .intention-input::placeholder {
-            color: var(--text-color);
-            opacity: 0.5;
-            font-weight: normal;
-        }
+        .intention-input:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--glow-color); }
+        .intention-input::placeholder { color: var(--text-color); opacity: 0.5; font-weight: normal; }
 
-        /* SVG Character & Animations */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes floatBook {
-            0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
-            50% { transform: translateY(-6px) scale(1.02) rotate(1deg); }
-        }
-        @keyframes blink {
-            0%, 96%, 98%, 100% { transform: scaleY(1); }
-            97% { transform: scaleY(0.1); }
-        }
+        /* SVG Character */
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes floatBook { 0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); } 50% { transform: translateY(-6px) scale(1.02) rotate(1deg); } }
+        @keyframes blink { 0%, 96%, 98%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+        @keyframes pulseAura { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
 
-        .character-wrapper {
-            width: 160px;
-            height: 160px;
-            margin: 0 auto 1.5rem auto;
-            position: relative;
-            animation: float 4s ease-in-out infinite;
-        }
-
+        .character-wrapper { width: 160px; height: 160px; margin: 0 auto 1.5rem auto; position: relative; animation: float 4s ease-in-out infinite; }
         .svg-character { width: 100%; height: 100%; overflow: visible; }
-        .book-group {
-            opacity: var(--book-opacity);
-            transform: var(--book-transform);
-            transform-origin: center 70%;
-            transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        body.study-mode .book-group {
-            animation: floatBook 6s ease-in-out infinite;
-            animation-delay: 1s;
-        }
-        .page { fill: rgba(255, 255, 255, 0.15); stroke: var(--accent-color); stroke-width: 1.5; }
-        .page-line { stroke: var(--accent-color); stroke-width: 1.5; opacity: 0.6; stroke-linecap: round; }
-        .book-glow { fill: var(--glow-color); filter: blur(15px); }
+        
+        .book-group { opacity: var(--book-opacity); transform: var(--book-transform); transform-origin: center 70%; transition: all 1s; }
+        body.study-mode .book-group { animation: floatBook 6s ease-in-out infinite; animation-delay: 1s; }
+        .page { fill: var(--page-color); stroke: var(--accent-color); stroke-width: 1.5; transition: all 0.8s; }
+        .page-line { stroke: var(--accent-color); stroke-width: 1.5; opacity: 0.6; stroke-linecap: round; transition: all 0.8s;}
+        .book-glow { fill: var(--glow-color); filter: blur(15px); transition: fill 0.8s; }
 
         .skin { fill: var(--skin); transition: fill 0.8s; }
         .hair { fill: var(--hair); transition: fill 0.8s; }
@@ -170,82 +146,53 @@
         .glasses-bridge { stroke: var(--glasses-frame); stroke-width: 5; transition: stroke 0.8s; }
         .eye { fill: var(--glasses-frame); animation: blink 4s infinite; transform-origin: center; transition: all 0.8s; }
         
+        /* Evolutionary Gear */
+        .headband { fill: #ef4444; opacity: var(--headband-opacity); transition: opacity 1s; }
+        .wizard-hat { opacity: var(--hat-opacity); transition: opacity 1s; transform-origin: bottom center; }
+        .wizard-hat-base { fill: #312e81; }
+        .wizard-hat-band { fill: #fbbf24; }
+        .aura { fill: var(--glow-color); opacity: var(--aura-opacity); filter: blur(20px); transform-origin: center; animation: pulseAura 3s infinite ease-in-out; transition: opacity 1s; }
+
         body.study-mode .character-wrapper { animation: float 2.5s ease-in-out infinite; }
 
-        /* Timer & Controls */
-        .timer-display {
-            font-size: 4.5rem;
-            font-weight: bold;
-            margin: 0.5rem 0;
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 4px 15px var(--glow-color);
-        }
-
-        .progress-indicator {
-            display: flex; justify-content: center; gap: 12px; margin-bottom: 1.5rem;
-        }
+        .timer-display { font-size: 4.5rem; font-weight: bold; margin: 0.5rem 0; font-variant-numeric: tabular-nums; text-shadow: 0 4px 15px var(--glow-color); }
+        .progress-indicator { display: flex; justify-content: center; gap: 12px; margin-bottom: 1.5rem; }
         .dot { width: 14px; height: 14px; border-radius: 50%; background: rgba(128, 128, 128, 0.3); transition: all 0.5s; }
         .dot.active { background: var(--accent-color); box-shadow: 0 0 12px var(--accent-color); transform: scale(1.2); }
         .dot.completed { background: var(--accent-color); opacity: 0.4; }
 
-        .btn-group {
-            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;
-        }
-
-        .btn {
-            background: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem;
-            font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 4px 15px var(--glow-color); letter-spacing: 0.5px;
-            display: flex; align-items: center; gap: 8px; transition: transform 0.1s;
-        }
+        .btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .btn { background: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px var(--glow-color); transition: transform 0.1s; }
         .btn:hover { transform: scale(1.05) translateY(-2px); }
         .btn:active { transform: scale(0.95); }
-        
-        .btn-secondary {
-            background: transparent; color: var(--text-color); border: 2px solid var(--accent-color);
-            box-shadow: none;
-        }
-        
-        #noise-btn { opacity: 0.7; }
+        .btn-secondary { background: transparent; color: var(--text-color); border: 2px solid var(--accent-color); box-shadow: none; }
         #noise-btn.playing { opacity: 1; background: var(--accent-color); color: white; border-color: transparent;}
 
-        /* The Brain Dump */
-        .brain-dump-wrapper {
-            text-align: left;
-            margin-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 1.5rem;
-        }
-        .brain-dump-label {
-            font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; display: block; opacity: 0.9;
-        }
-        .brain-dump-textarea {
-            width: 100%; height: 80px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2);
-            color: var(--text-color); padding: 0.8rem; border-radius: 12px; resize: none;
-            font-size: 0.9rem; line-height: 1.4; outline: none; transition: all 0.3s;
-        }
+        .brain-dump-wrapper { text-align: left; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 1.5rem; }
+        .brain-dump-textarea { width: 100%; height: 80px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.2); color: var(--text-color); padding: 0.8rem; border-radius: 12px; resize: none; font-size: 0.9rem; outline: none; transition: all 0.3s; }
         .brain-dump-textarea:focus { border-color: var(--accent-color); }
-        .brain-dump-textarea::placeholder { color: var(--text-color); opacity: 0.4; }
 
-        /* Confetti Canvas */
-        #confetti-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 100;
-        }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
     </style>
 </head>
 <body>
 
     <canvas id="confetti-canvas"></canvas>
 
-    <div class="container">
-        <div class="intention-wrapper">
-            <label class="intention-label" id="phase-status">Civilian Mode</label>
-            <input type="text" class="intention-input" id="intention-input" placeholder="What is your single focus right now?" autocomplete="off">
+    <div class="container" id="app-container">
+        <div class="xp-wrapper" id="xp-bar" title="Click to instantly test XP gain!">
+            <div class="xp-fill" id="xp-fill"></div>
+            <span class="xp-text" id="level-text">Level 1: Novice</span>
+            <span class="xp-text" id="xp-text">0 / 50 XP</span>
         </div>
+        <div class="xp-popup" id="xp-popup">+50 XP!</div>
+
+        <input type="text" class="intention-input" id="intention-input" placeholder="What is your single focus right now?" autocomplete="off">
 
         <div class="character-wrapper">
             <svg class="svg-character" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle class="aura" cx="50" cy="40" r="40" />
+
                 <g class="book-group">
                     <ellipse class="book-glow" cx="50" cy="40" rx="45" ry="30" />
                     <path class="page" d="M 50 65 Q 15 65 5 35 Q 25 20 50 25 Z" />
@@ -265,6 +212,14 @@
                 <path class="hair" d="M 27 40 C 27 12, 73 12, 73 40 C 73 25, 27 25, 27 40 Z" />
                 <path class="hair" d="M 24 45 C 22 22, 50 17, 60 17 C 42 17, 27 32, 24 45 Z" />
                 
+                <path class="headband" d="M 27 32 Q 50 35 73 32 L 73 38 Q 50 41 27 38 Z" />
+                
+                <g class="wizard-hat">
+                    <path class="wizard-hat-base" d="M 20 25 Q 50 15 80 25 L 50 -10 Z" />
+                    <ellipse class="wizard-hat-base" cx="50" cy="25" rx="35" ry="8" />
+                    <path class="wizard-hat-band" d="M 33 22 Q 50 28 67 22 L 65 18 Q 50 24 35 18 Z" />
+                </g>
+
                 <line class="glasses-bridge" x1="45" y1="42" x2="55" y2="42" />
                 <circle class="glasses-frame" cx="35" cy="42" r="11" />
                 <circle class="glasses-frame" cx="65" cy="42" r="11" />
@@ -284,74 +239,101 @@
 
         <div class="btn-group">
             <button class="btn" id="start-btn">Enter Character</button>
-            <button class="btn btn-secondary" id="noise-btn" style="display: none;">
-                <span id="noise-icon">🎧</span> Brown Noise
-            </button>
+            <button class="btn btn-secondary" id="noise-btn" style="display: none;">🎧 Brown Noise</button>
             <button class="btn btn-secondary" id="reset-btn" style="display: none;">Break Character</button>
         </div>
 
         <div class="brain-dump-wrapper">
-            <label class="brain-dump-label">🧠 Distraction Dump</label>
+            <label style="font-size: 0.85rem; font-weight: bold; opacity: 0.9; margin-bottom:0.5rem; display:block;">🧠 Distraction Dump</label>
             <textarea class="brain-dump-textarea" placeholder="Thought pops in? Type it here so you don't forget, then instantly go back to studying..."></textarea>
         </div>
     </div>
 
     <script>
-        /* --- CONFIGURATION --- */
+        // --- RPG Mechanics ---
+        let totalXP = parseInt(localStorage.getItem('focusXP')) || 0;
+        const levels = [
+            { threshold: 0, title: "Level 1: Civilian", next: 50 },
+            { threshold: 50, title: "Level 2: Apprentice", next: 150 },
+            { threshold: 150, title: "Level 3: Scholar", next: 300 },
+            { threshold: 300, title: "Level 4: Flow Adept", next: 500 },
+            { threshold: 500, title: "Level 5: Focus Mage", next: 1000 }
+        ];
+
+        function updateXPDisplay() {
+            let currentLevelIdx = 0;
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (totalXP >= levels[i].threshold) {
+                    currentLevelIdx = i;
+                    break;
+                }
+            }
+            
+            const currentLevel = levels[currentLevelIdx];
+            document.getElementById('level-text').textContent = currentLevel.title;
+            
+            // Clean slate classes
+            document.body.className = document.body.className.replace(/lvl-\d/g, '').trim();
+            document.body.classList.add(`lvl-${currentLevelIdx + 1}`);
+
+            if (currentLevelIdx < levels.length - 1) {
+                const xpInLevel = totalXP - currentLevel.threshold;
+                const levelRange = currentLevel.next - currentLevel.threshold;
+                const percent = (xpInLevel / levelRange) * 100;
+                document.getElementById('xp-text').textContent = `${totalXP} / ${currentLevel.next} XP`;
+                document.getElementById('xp-fill').style.width = `${percent}%`;
+            } else {
+                document.getElementById('xp-text').textContent = `${totalXP} XP (MAX LEVEL)`;
+                document.getElementById('xp-fill').style.width = `100%`;
+            }
+        }
+
+        function gainXP(amount) {
+            totalXP += amount;
+            localStorage.setItem('focusXP', totalXP);
+            updateXPDisplay();
+            
+            // Floating XP Text
+            const popup = document.getElementById('xp-popup');
+            popup.classList.remove('animate');
+            void popup.offsetWidth; // trigger reflow
+            popup.classList.add('animate');
+            
+            fireConfetti();
+        }
+
+        // Secret click to test leveling
+        document.getElementById('xp-bar').addEventListener('click', () => gainXP(50));
+
+        // --- Core Timer Config ---
         const STUDY_TIME = 30 * 60; 
         const BREAK_TIME = 10 * 60; 
         
         let timeLeft = STUDY_TIME;
         let isRunning = false;
         let timerId = null;
-        let currentPhase = 0; // 0=Study1, 1=Break1, 2=Study2, 3=Break2, 4=Study3
+        let currentPhase = 0; 
         const totalPhases = 5;
 
-        /* --- DOM ELEMENTS --- */
+        // Elements
         const timerDisplay = document.getElementById('timer');
         const startBtn = document.getElementById('start-btn');
         const resetBtn = document.getElementById('reset-btn');
         const noiseBtn = document.getElementById('noise-btn');
-        const phaseStatus = document.getElementById('phase-status');
-        const intentionInput = document.getElementById('intention-input');
-        const body = document.body;
         const leftEye = document.getElementById('left-eye');
         const rightEye = document.getElementById('right-eye');
         const dots = [document.getElementById('dot-1'), document.getElementById('dot-2'), document.getElementById('dot-3')];
 
-        /* --- AUDIO & NOISE GENERATOR --- */
+        // Init RPG UI
+        updateXPDisplay();
+
+        // --- Audio Context ---
         let audioCtx;
-        let brownNoiseNode;
-        let noiseGain;
+        let brownNoiseNode, noiseGain;
         let isNoisePlaying = false;
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function createBrownNoise() {
-            const bufferSize = 2 * audioCtx.sampleRate;
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            let lastOut = 0;
-            for (let i = 0; i < bufferSize; i++) {
-                const white = Math.random() * 2 - 1;
-                output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown noise algorithm
-                lastOut = output[i];
-                output[i] *= 3.5; // Compensate gain
-            }
-            brownNoiseNode = audioCtx.createBufferSource();
-            brownNoiseNode.buffer = noiseBuffer;
-            brownNoiseNode.loop = true;
-            
-            noiseGain = audioCtx.createGain();
-            noiseGain.gain.value = 0.5; // Gentle volume
-            
-            brownNoiseNode.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            brownNoiseNode.start(0);
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function toggleBrownNoise() {
@@ -363,15 +345,31 @@
                 noiseBtn.classList.remove('playing');
                 isNoisePlaying = false;
             } else {
-                createBrownNoise();
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02; 
+                    lastOut = output[i];
+                    output[i] *= 3.5; 
+                }
+                brownNoiseNode = audioCtx.createBufferSource();
+                brownNoiseNode.buffer = noiseBuffer;
+                brownNoiseNode.loop = true;
+                noiseGain = audioCtx.createGain();
+                noiseGain.gain.value = 0.5; 
+                brownNoiseNode.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                brownNoiseNode.start(0);
                 noiseBtn.classList.add('playing');
                 isNoisePlaying = true;
             }
         }
-
         noiseBtn.addEventListener('click', toggleBrownNoise);
 
-        /* --- DOPAMINE CONFETTI --- */
+        // --- Confetti ---
         const canvas = document.getElementById('confetti-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -382,12 +380,9 @@
             particles = [];
             for(let i=0; i<100; i++) {
                 particles.push({
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    vx: (Math.random() - 0.5) * 20,
-                    vy: (Math.random() - 1) * 20 - 5,
-                    color: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                    size: Math.random() * 8 + 4
+                    x: window.innerWidth / 2, y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 1) * 20 - 5,
+                    color: `hsl(${Math.random() * 360}, 80%, 60%)`, size: Math.random() * 8 + 4
                 });
             }
             requestAnimationFrame(animateConfetti);
@@ -397,45 +392,30 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let active = false;
             particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.5; // Gravity
+                p.x += p.vx; p.y += p.vy; p.vy += 0.5;
                 if (p.y < canvas.height) active = true;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
             });
             if (active) requestAnimationFrame(animateConfetti);
         }
 
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        /* --- TIMER LOGIC --- */
+        // --- Timer Logic ---
         function formatTime(seconds) {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
+            return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
         }
 
-        function updateDisplay() {
-            timerDisplay.textContent = formatTime(timeLeft);
-        }
+        function updateDisplay() { timerDisplay.textContent = formatTime(timeLeft); }
 
         function playChime(isFocus) {
             initAudio();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.value = isFocus ? 600 : 400; 
-            osc.type = 'sine';
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = isFocus ? 600 : 400; osc.type = 'sine';
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
             gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
         }
 
         function updateUIForPhase() {
@@ -443,19 +423,13 @@
             const blockNum = Math.floor(currentPhase / 2);
 
             if (isStudy) {
-                body.classList.add('study-mode');
-                phaseStatus.textContent = `Deep Work: Block ${blockNum + 1} of 3`;
+                document.body.classList.add('study-mode');
                 timeLeft = STUDY_TIME;
-                leftEye.setAttribute('r', '3');
-                rightEye.setAttribute('r', '3');
-                if(!intentionInput.value) intentionInput.placeholder = "What is your single focus right now?";
+                leftEye.setAttribute('r', '3'); rightEye.setAttribute('r', '3');
             } else {
-                body.classList.remove('study-mode');
-                phaseStatus.textContent = "Rest & Recharge";
+                document.body.classList.remove('study-mode');
                 timeLeft = BREAK_TIME;
-                leftEye.setAttribute('r', '2');
-                rightEye.setAttribute('r', '2');
-                intentionInput.placeholder = "Take a breath. Stretch your legs.";
+                leftEye.setAttribute('r', '2'); rightEye.setAttribute('r', '2');
             }
 
             dots.forEach((dot, idx) => {
@@ -463,7 +437,6 @@
                 if (idx < blockNum) dot.classList.add('completed');
                 else if (idx === blockNum && isStudy) dot.classList.add('active');
             });
-
             updateDisplay();
         }
 
@@ -475,65 +448,48 @@
                 const finishingStudyPhase = currentPhase % 2 === 0;
                 
                 if (finishingStudyPhase) {
-                    fireConfetti(); // Reward at the end of a focus block
+                    gainXP(50); // Real XP gain for finishing a study block
                 }
                 
                 playChime(!finishingStudyPhase);
                 currentPhase++;
                 
                 if (currentPhase >= totalPhases) {
-                    clearInterval(timerId);
-                    isRunning = false;
-                    body.classList.remove('study-mode');
-                    phaseStatus.textContent = "90 Minutes Completed!";
+                    clearInterval(timerId); isRunning = false;
+                    document.body.classList.remove('study-mode');
                     startBtn.textContent = "Start New Mission";
                     dots.forEach(dot => dot.classList.add('completed'));
-                    timeLeft = STUDY_TIME; 
-                    currentPhase = 0;
+                    timeLeft = STUDY_TIME; currentPhase = 0;
                     if (isNoisePlaying) toggleBrownNoise();
                     return;
                 }
-
                 updateUIForPhase();
             }
         }
 
         startBtn.addEventListener('click', () => {
-            initAudio(); // Required by browsers to start audio context on user gesture
+            initAudio(); 
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (isRunning) {
-                clearInterval(timerId);
-                isRunning = false;
+                clearInterval(timerId); isRunning = false;
                 startBtn.textContent = "Resume Character";
             } else {
                 if (timeLeft === STUDY_TIME && currentPhase === 0) updateUIForPhase(); 
-                timerId = setInterval(tick, 1000);
-                isRunning = true;
+                timerId = setInterval(tick, 1000); isRunning = true;
                 startBtn.textContent = "Pause Mission";
-                resetBtn.style.display = "inline-flex";
-                noiseBtn.style.display = "inline-flex";
+                resetBtn.style.display = "inline-flex"; noiseBtn.style.display = "inline-flex";
             }
         });
 
         resetBtn.addEventListener('click', () => {
-            clearInterval(timerId);
-            isRunning = false;
-            currentPhase = 0;
-            timeLeft = STUDY_TIME;
-            
-            body.classList.remove('study-mode');
-            phaseStatus.textContent = "Civilian Mode";
+            clearInterval(timerId); isRunning = false;
+            currentPhase = 0; timeLeft = STUDY_TIME;
+            document.body.classList.remove('study-mode');
             startBtn.textContent = "Enter Character";
-            resetBtn.style.display = "none";
-            noiseBtn.style.display = "none";
-            intentionInput.value = "";
-            intentionInput.placeholder = "What is your single focus right now?";
-            
+            resetBtn.style.display = "none"; noiseBtn.style.display = "none";
             if (isNoisePlaying) toggleBrownNoise();
-            
-            leftEye.setAttribute('r', '2');
-            rightEye.setAttribute('r', '2');
+            leftEye.setAttribute('r', '2'); rightEye.setAttribute('r', '2');
             dots.forEach(dot => dot.classList.remove('active', 'completed'));
             updateDisplay();
         });
