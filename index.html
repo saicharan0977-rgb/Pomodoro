@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADHD Focus Cockpit: Desktop Edition</title>
+    <title>ADHD Focus Cockpit: Auto-Save Edition</title>
     <style>
         /* CSS Variables */
         :root {
@@ -82,9 +82,7 @@
             padding: 2.5rem; border-radius: 2rem; box-shadow: 0 8px 32px var(--glow-color);
             max-width: 500px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.15);
             position: relative; z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
         }
 
         .panel-left { text-align: center; }
@@ -92,20 +90,8 @@
 
         /* --- DESKTOP LAYOUT --- */
         @media (min-width: 850px) {
-            .container {
-                max-width: 950px;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 3rem;
-                align-items: center;
-                padding: 3.5rem;
-            }
-            .panel-right {
-                border-left: 1px solid rgba(255, 255, 255, 0.2);
-                padding-left: 3rem;
-                height: 100%;
-                justify-content: space-between;
-            }
+            .container { max-width: 950px; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; padding: 3.5rem; }
+            .panel-right { border-left: 1px solid rgba(255, 255, 255, 0.2); padding-left: 3rem; height: 100%; justify-content: space-between; }
         }
 
         /* --- XP BAR UI --- */
@@ -260,13 +246,29 @@
 
             <div class="brain-dump-wrapper">
                 <label style="font-size: 0.85rem; font-weight: bold; opacity: 0.9; margin-bottom:0.5rem; display:block; text-transform: uppercase; letter-spacing: 1px;">🧠 Distraction Dump</label>
-                <textarea class="brain-dump-textarea" placeholder="Thought pops in? Type it here so you don't forget, then instantly go back to studying..."></textarea>
+                <textarea class="brain-dump-textarea" id="brain-dump" placeholder="Thought pops in? Type it here so you don't forget, then instantly go back to studying..."></textarea>
             </div>
         </div>
 
     </div>
 
     <script>
+        // --- Auto-Save Text Fields ---
+        const intentionInput = document.getElementById('intention-input');
+        const brainDump = document.getElementById('brain-dump');
+
+        // Load saved text when page opens
+        intentionInput.value = localStorage.getItem('focusIntention') || '';
+        brainDump.value = localStorage.getItem('focusBrainDump') || '';
+
+        // Save text automatically every time you type
+        intentionInput.addEventListener('input', () => {
+            localStorage.setItem('focusIntention', intentionInput.value);
+        });
+        brainDump.addEventListener('input', () => {
+            localStorage.setItem('focusBrainDump', brainDump.value);
+        });
+
         // --- RPG Mechanics ---
         let totalXP = parseInt(localStorage.getItem('focusXP')) || 0;
         const levels = [
